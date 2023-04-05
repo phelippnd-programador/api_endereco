@@ -1,0 +1,32 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password: password
+    driver-class-name: org.h2.Driver
+  h2:
+    console:
+      enabled: true
+#spring:
+#  jpa:
+#    hibernate:
+#      ddl-auto: none
+#  datasource:
+#    url: jdbc:mysql://localhost:3306/erp_endereco
+#    username: root
+#    password: mauFJcuf5dhRMQrjj
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+    
+
+
+    
+#spring.jpa.show-sql: true
+#springdoc:
+#  api-docs:
+#    path: /api-docs
+#  swagger-ui:
+#    path: /swagger-ui.html
+#  show-actuator: true
