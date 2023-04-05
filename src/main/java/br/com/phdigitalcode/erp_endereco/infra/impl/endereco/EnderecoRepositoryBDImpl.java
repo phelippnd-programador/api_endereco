@@ -45,6 +45,29 @@ public class EnderecoRepositoryBDImpl implements OUTEnderecoRepository {
 	public Optional<Page<LogradouroVO>> consultaLogradouro(ConsultaLogradouroFiltroDto consultaLogradouroFiltro) {
 		return Optional.empty();
 	}
+	public Logradouro carregarEndereco(EnderecoVO enderecoVO) {
+		Logradouro logradouro = new Logradouro();
+		logradouro.setCep(enderecoVO.getCep());
+		logradouro.setDescricao(enderecoVO.getLogradouro());
+		logradouro.setComplemento(enderecoVO.getComplemento());
+		Bairro bairro =carregaBairro(enderecoVO);
+		logradouro.setBairro(bairro);
+		return logradouro;
+	}
+	private Bairro carregaBairro(EnderecoVO enderecoVO) {
+		List<Bairro> findByDescricao = bairroRepository.findByDescricao(enderecoVO.getBairro());
+		Optional<Bairro> bairro = findByDescricao.parallelStream().filter(null).findFirst();
+		if(bairro.isPresent())
+		{
+			return bairro.get();
+		}
+		return new Bairro(null,carregaMunicipio(enderecoVO),enderecoVO.getBairro());
+	}
+
+	private Municipio carregaMunicipio(EnderecoVO enderecoVO) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	@Override
 	public void salvarEndereco(EnderecoVO enderecoVO) {
