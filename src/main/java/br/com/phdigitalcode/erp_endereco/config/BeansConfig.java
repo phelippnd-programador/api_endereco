@@ -8,6 +8,9 @@ import org.springframework.context.annotation.Primary;
 import br.com.phdigitalcode.erp_endereco.domain.repository.OUTEnderecoRepository;
 import br.com.phdigitalcode.erp_endereco.domain.service.EnderecoService;
 import br.com.phdigitalcode.erp_endereco.domain.service.EnderecoServiceImpl;
+import br.com.phdigitalcode.erp_endereco.domain.service.EnderecoServiceProxyImpl;
+import br.com.phdigitalcode.erp_endereco.domain.service.consulta.ConsultarEnderecoService;
+import br.com.phdigitalcode.erp_endereco.domain.service.gravar.GravarEndereco;
 import br.com.phdigitalcode.erp_endereco.infra.impl.endereco.EnderecoRepositoryBDImpl;
 import br.com.phdigitalcode.erp_endereco.infra.impl.endereco.EnderecoRepositoryProxyImpl;
 
@@ -24,11 +27,11 @@ public class BeansConfig {
 	}
 	@Bean
 	@Primary
-	public EnderecoService enderecoServiceBD(OUTEnderecoRepository repository) {
-		return new EnderecoServiceImpl(repository);
+	public EnderecoService enderecoServiceBD(ConsultarEnderecoService consultaEndereco,GravarEndereco gravarEndereco) {
+		return new EnderecoServiceImpl(consultaEndereco,gravarEndereco);
 	}
 	@Bean("enderecoServiceProxy")
-	public EnderecoService enderecoServiceProxy(@Qualifier(value = "enderecoRepositoryProxy") OUTEnderecoRepository repository) {
-		return new EnderecoServiceImpl(repository);
+	public EnderecoService enderecoServiceProxy(@Qualifier(value = "consultaEnderecoViaCep") ConsultarEnderecoService consultaEndereco) {
+		return new EnderecoServiceProxyImpl(consultaEndereco);
 	}
 }

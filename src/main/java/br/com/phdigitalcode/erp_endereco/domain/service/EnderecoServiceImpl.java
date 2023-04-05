@@ -3,8 +3,6 @@ package br.com.phdigitalcode.erp_endereco.domain.service;
 import org.springframework.data.domain.Page;
 import org.springframework.util.StringUtils;
 
-import br.com.phdigitalcode.erp_endereco.domain.exception.NoContentException;
-import br.com.phdigitalcode.erp_endereco.domain.exception.NotFoundException;
 import br.com.phdigitalcode.erp_endereco.domain.model.dto.ConsultaBairroFiltroDto;
 import br.com.phdigitalcode.erp_endereco.domain.model.dto.ConsultaEstadoFiltroDto;
 import br.com.phdigitalcode.erp_endereco.domain.model.dto.ConsultaLogradouroFiltroDto;
@@ -16,20 +14,19 @@ import br.com.phdigitalcode.erp_endereco.domain.model.vo.EstadoVO;
 import br.com.phdigitalcode.erp_endereco.domain.model.vo.LogradouroVO;
 import br.com.phdigitalcode.erp_endereco.domain.model.vo.MunicipioVO;
 import br.com.phdigitalcode.erp_endereco.domain.model.vo.PaisVO;
-import br.com.phdigitalcode.erp_endereco.domain.repository.OUTEnderecoRepository;
+import br.com.phdigitalcode.erp_endereco.domain.service.consulta.ConsultarEnderecoService;
+import br.com.phdigitalcode.erp_endereco.domain.service.gravar.GravarEndereco;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class EnderecoServiceImpl implements EnderecoService {
 	
-	private final OUTEnderecoRepository repository;
-
+	private final ConsultarEnderecoService consultarEnderecoService;
+	private final GravarEndereco gravarEndereco;
 	@Override
 	public EnderecoVO consultaViaCep(String cep) {
-		validaConsultaCep(cep);
-		return repository
-					.consultaEnderecoPorCep(cep)
-					.orElseThrow(() -> new NotFoundException("Endereco não encontrado!"));
+		return consultarEnderecoService.consultaViaCep(cep);
+		
 	}
 
 	@Override
@@ -57,8 +54,9 @@ public class EnderecoServiceImpl implements EnderecoService {
 		if(consultaLogradouroFiltro.getPagina().compareTo(0)<0) {
 			throw new IllegalArgumentException("Pagina deve maior ou igual a zero");	
 		}
-		return repository.consultaLogradouro(consultaLogradouroFiltro)
-			.orElseThrow(()->new NoContentException("Nenhum conteudo encontrado!"));
+		return null;
+//		return repository.consultaLogradouro(consultaLogradouroFiltro)
+//			.orElseThrow(()->new NoContentException("Nenhum conteudo encontrado!"));
 	}
 
 	@Override
@@ -87,7 +85,7 @@ public class EnderecoServiceImpl implements EnderecoService {
 
 	@Override
 	public void gravarEndereco(EnderecoVO enderecoVO) {
-		repository.salvarEndereco(enderecoVO);
+		gravarEndereco.gravarEndereco(enderecoVO);
 		
 	}
 

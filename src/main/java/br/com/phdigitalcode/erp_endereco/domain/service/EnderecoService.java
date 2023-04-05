@@ -17,21 +17,14 @@ import br.com.phdigitalcode.erp_endereco.domain.model.vo.MunicipioVO;
 import br.com.phdigitalcode.erp_endereco.domain.model.vo.PaisVO;
 
 public interface EnderecoService {
-	public static final String REGEX_CEP = "[\\d]{8}";
 	EnderecoVO consultaViaCep(String cep);
-	Page<LogradouroVO> listarLogradouro(ConsultaLogradouroFiltroDto consultaEstadoFiltro);
+//	Page<LogradouroVO> listarLogradouro(ConsultaLogradouroFiltroDto consultaEstadoFiltro);
 	Page<BairroVO> listarBairro(ConsultaBairroFiltroDto consultaBairroFiltro);
 	Page<MunicipioVO> listarMunicipio(ConsultaMunicipioFiltroDto consultaMunicipioFiltro);
 	Page<EstadoVO> listarEstado(ConsultaEstadoFiltroDto consultaEstadoFiltro);
 	Page<PaisVO> listarPais(ConsultaPaisFiltroDto consultaEstadoFiltro);
 	void gravarEndereco(EnderecoVO enderecoVO);
-	default void validaConsultaCep(String cep){
-		if (cep.length() != 8) {
-			throw new QuantidadeCaracterException("Caracter diferente de 8");
-		}
-		if (!cep.matches(REGEX_CEP)) {
-			throw new CepException("Cep Invalido");
-		}
-	}
+	Page<LogradouroVO> listarLogradouro(ConsultaLogradouroFiltroDto consultaLogradouroFiltro);
+	
 	
 }

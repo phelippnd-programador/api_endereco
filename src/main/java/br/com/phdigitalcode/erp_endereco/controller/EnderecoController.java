@@ -25,11 +25,11 @@ public class EnderecoController {
 	
 	@GetMapping
 	public EnderecoVO consultaCep(String cep) throws InterruptedException {
-		return facet.consultaEnderecoPorCep(cep);
-					 
+		return facet.consultaEnderecoPorCep(cep);				 
 	}
-	private void isEmpty() {
-		// TODO Auto-generated method stub
+	private EnderecoVO consultaPorLogradouro(String logradouro) {
+		// TODO Auto-generated method stubreturn 
+		return facet.consultaEnderecoPorLogradouro(logradouro);
 		
 	}
 }

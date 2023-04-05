@@ -33,4 +33,9 @@ public class FacetEndereco {
 		}
 	}
 
+	public EnderecoVO consultaEnderecoPorLogradouro(String logradouro) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
