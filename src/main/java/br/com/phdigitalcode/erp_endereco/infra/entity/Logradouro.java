@@ -3,6 +3,7 @@ package br.com.phdigitalcode.erp_endereco.infra.entity;
 import java.io.Serializable;
 
 import br.com.phdigitalcode.erp_endereco.domain.model.vo.EnderecoVO;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,7 +22,7 @@ public class Logradouro implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer id;
-	@ManyToOne
+	@ManyToOne(cascade = CascadeType.PERSIST)
 	private Bairro bairro;
 	private String descricao;
 	private String cep;

@@ -6,7 +6,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import br.com.phdigitalcode.erp_endereco.domain.model.dto.ConsultaLogradouroFiltroDto;
 import br.com.phdigitalcode.erp_endereco.domain.model.vo.EnderecoVO;
@@ -46,17 +45,24 @@ public class EnderecoRepositoryBDImpl implements OUTEnderecoRepository {
 		return Optional.empty();
 	}
 	public Logradouro carregarEndereco(EnderecoVO enderecoVO) {
-		Logradouro logradouro = new Logradouro();
-		logradouro.setCep(enderecoVO.getCep());
-		logradouro.setDescricao(enderecoVO.getLogradouro());
-		logradouro.setComplemento(enderecoVO.getComplemento());
-		Bairro bairro =carregaBairro(enderecoVO);
-		logradouro.setBairro(bairro);
-		return logradouro;
+		List<Logradouro> findByCep = logradouroRepository
+			.findByCep(enderecoVO.getCep());
+		return findByCep.parallelStream()
+			.filter(l->l.getDescricao()
+					.equalsIgnoreCase(enderecoVO.getLogradouro()))
+			.filter(l-> l.getBairro().getDescricao().equalsIgnoreCase(enderecoVO.getBairro()))
+			.filter(l-> l.getBairro().getMunicipio().getDescricao().equalsIgnoreCase(enderecoVO.getMunicipio()))
+			.filter(l-> l.getBairro().getMunicipio().getEstado().getDescricao().equalsIgnoreCase(enderecoVO.getEstado()))
+			.findFirst()
+			.orElse(new Logradouro(null, carregaBairro(enderecoVO), enderecoVO.getLogradouro(),enderecoVO.getCep(), enderecoVO.getComplemento()));
+	
 	}
 	private Bairro carregaBairro(EnderecoVO enderecoVO) {
 		List<Bairro> findByDescricao = bairroRepository.findByDescricao(enderecoVO.getBairro());
-		Optional<Bairro> bairro = findByDescricao.parallelStream().filter(null).findFirst();
+		Optional<Bairro> bairro = findByDescricao.parallelStream()
+					.filter(b->b.getMunicipio().getDescricao().equalsIgnoreCase(enderecoVO.getMunicipio()))
+					.filter(b->b.getMunicipio().getEstado().getDescricao().equalsIgnoreCase(enderecoVO.getEstado()))
+					.findFirst();
 		if(bairro.isPresent())
 		{
 			return bairro.get();
@@ -65,100 +71,29 @@ public class EnderecoRepositoryBDImpl implements OUTEnderecoRepository {
 	}
 
 	private Municipio carregaMunicipio(EnderecoVO enderecoVO) {
-		// TODO Auto-generated method stub
-		return null;
+		List<Municipio> municipioList = municipioRepository.findByDescricao(enderecoVO.getMunicipio());
+		Optional<Municipio> municipio = municipioList.parallelStream()
+					.filter(m-> m.getEstado().getDescricao().equalsIgnoreCase(enderecoVO.getEstado()))
+					.findFirst();
+		if(municipio.isPresent()) {
+			return municipio.get();
+		}
+		return new Municipio(null, carregaEstado(enderecoVO), enderecoVO.getMunicipio());
+	}
+
+	private Estado carregaEstado(EnderecoVO enderecoVO) {
+		return estadoRepository.findByDescricao(enderecoVO.getEstado())
+			.orElse(new Estado(null, enderecoVO.getEstado()));
 	}
 
 	@Override
 	public void salvarEndereco(EnderecoVO enderecoVO) {
-		if(enderecoVO== null) {
-			throw new IllegalArgumentException("Endereço encontra-se nulo!");
-		}
-		Optional<Estado> estado = estadoRepository
-					.findByDescricao(enderecoVO.getEstado()).parallelStream().findFirst();
-		if (estado.isEmpty()) {
-			gravarEstado(enderecoVO.getEstado());
-		}
-		Optional<Municipio> municipio = municipioRepository.findByDescricao(enderecoVO.getMunicipio())
-					.parallelStream()
-					.filter(m -> m.getEstado().getDescricao().equalsIgnoreCase(enderecoVO.getEstado()))
-					.findFirst();
-		if (municipio.isEmpty()) {
-			gravarMunicipio(enderecoVO.getMunicipio(), enderecoVO.getEstado());
-		}
-		Optional<Bairro> bairro = bairroRepository.findByDescricao(enderecoVO.getBairro())
-					.parallelStream()
-					.filter(b -> b.getMunicipio().getDescricao().equalsIgnoreCase(enderecoVO.getMunicipio()))
-					.filter(b -> b.getMunicipio().getEstado().getDescricao().equalsIgnoreCase(enderecoVO.getEstado()))
-					.findFirst();
-		if (bairro.isEmpty()) {
-			gravarBairro(enderecoVO.getBairro(), enderecoVO.getMunicipio(), enderecoVO.getEstado());
-		}
-		Optional<Logradouro> logradouro = logradouroRepository.findByCep(enderecoVO.getCep().replace("-", ""))
-					.parallelStream()
-					.filter(b -> b.getBairro().getDescricao().equalsIgnoreCase(enderecoVO.getBairro()))
-					.filter(b -> b.getBairro().getMunicipio().getDescricao()
-								.equalsIgnoreCase(enderecoVO.getMunicipio()))
-					.filter(b -> b.getBairro().getMunicipio().getEstado().getDescricao()
-								.equalsIgnoreCase(enderecoVO.getEstado()))
-					.findFirst();
-		if (logradouro.isEmpty()) {
-			gravarLogadouro(enderecoVO.getCep().replace("-", ""),enderecoVO.getComplemento(), enderecoVO.getLogradouro(), enderecoVO.getBairro(),
-						enderecoVO.getMunicipio(), enderecoVO.getEstado());
-		}
+		Logradouro carregarEndereco = carregarEndereco(enderecoVO);
+		logradouroRepository.saveAndFlush(carregarEndereco);
 
 	}
 
-	private void gravarLogadouro(String cep,String complemento, String logradouroDescricao, String bairroDescricao, String municipioDescricao, String estadoDescricao) {
-		Logradouro logradouro = new Logradouro();
-		Bairro bairro = bairroRepository.findByDescricao(bairroDescricao).parallelStream()
-			.filter(b->b.getMunicipio().getDescricao().equalsIgnoreCase(municipioDescricao))
-			.filter(b->b.getMunicipio().getEstado().getDescricao().equalsIgnoreCase(estadoDescricao))
-			.findFirst().orElseThrow()
-			;
-		logradouro.setBairro(bairro);
-		logradouro.setCep(cep);
-		logradouro.setDescricao(logradouroDescricao);
-		logradouro.setComplemento(complemento);
-		logradouroRepository.saveAndFlush(logradouro);
 
-	}
-
-	private void gravarBairro(String bairroDescricao, String municipioDescricao, String estadoDescricao) {
-		
-		List<Municipio> findByDescricao = municipioRepository
-					.findByDescricao(municipioDescricao);
-		Municipio municipio = findByDescricao
-					.parallelStream()
-					.filter(m->m.getEstado().getDescricao().equalsIgnoreCase(estadoDescricao))
-					.findFirst().orElseThrow();
-		Bairro bairro = new Bairro();
-		bairro.setDescricao(bairroDescricao);
-		bairro.setMunicipio(municipio);
-		bairroRepository.saveAndFlush(bairro);
-	}
-
-	private void gravarMunicipio(String municipioDescricao, String estadoDescricao) {
-		if(!StringUtils.hasText(municipioDescricao)) {
-			throw new IllegalArgumentException("Nome do municipio encontra-se nula");
-		}
-		Estado estado = estadoRepository.findByDescricao(estadoDescricao)
-					.parallelStream()
-					.findFirst().orElseThrow();
-		Municipio municipio = new Municipio();
-		municipio.setDescricao(municipioDescricao);
-		municipio.setEstado(estado);
-		municipioRepository.saveAndFlush(municipio);
-	}
-
-	private void gravarEstado(String estadoDescricao) {
-		if(estadoDescricao==null) {
-			throw new IllegalArgumentException("Nome do estado encontra-se nula");
-		}
-		Estado estado = new Estado();
-		estado.setDescricao(estadoDescricao);
-		estadoRepository.saveAndFlush(estado);
-
-	}
+	
 
 }
